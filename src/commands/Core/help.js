@@ -80,77 +80,77 @@ export async function createInitialHelpMenu(client) {
 
     embed.addFields(
         {
-            name: "🛡️ **Moderation**",
+            name:  **Moderation**",
             value: "Server moderation, user management, and enforcement tools",
             inline: true
         },
         {
-            name: "💰 **Economy**",
+            name:  **Economy**",
             value: "Currency system, shops, and virtual economy",
             inline: true
         },
         {
-            name: "🎮 **Fun**",
+            name:  **Fun**",
             value: "Games, entertainment, and interactive commands",
             inline: true
         },
         {
-            name: "📊 **Leveling**",
+            name:  **Leveling**",
             value: "User levels, XP system, and progression tracking",
             inline: true
         },
         {
-            name: "🎫 **Tickets**",
+            name:  **Tickets**",
             value: "Support ticket system for server management",
             inline: true
         },
         {
-            name: "🎉 **Giveaways**",
+            name:  **Giveaways**",
             value: "Automated giveaway management and distribution",
             inline: true
         },
         {
-            name: "👋 **Welcome**",
+            name:  **Welcome**",
             value: "Member welcome messages and onboarding",
             inline: true
         },
         {
-            name: "🎂 **Birthdays**",
+            name:  **Birthdays**",
             value: "Birthday tracking and celebration features",
             inline: true
         },
         {
-            name: "👥 **Community**",
+            name:  **Community**",
             value: "Community tools, applications, and member engagement",
             inline: true
         },
         {
-            name: "⚙️ **Config**",
+            name:  **Config**",
             value: "Server and bot configuration management commands",
             inline: true
         },
         {
-            name: "🔢 **Counter**",
+            name:  **Counter**",
             value: "Live counter channel setup and counter controls",
             inline: true
         },
         {
-            name: "🎙️ **Join to Create**",
+            name:  **Join to Create**",
             value: "Dynamic voice channel creation and management",
             inline: true
         },
         {
-            name: "🎭 **Reaction Roles**",
+            name:  **Reaction Roles**",
             value: "Self-assignable roles using reaction-role systems",
             inline: true
         },
         {
-            name: "✅ **Verification**",
+            name:  **Verification**",
             value: "Member verification workflows and access gating",
             inline: true
         },
         {
-            name: "🔧 **Utilities**",
+            name:  **Utilities**",
             value: "Useful tools and server utilities",
             inline: true
         }
