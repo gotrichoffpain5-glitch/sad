@@ -1,1 +1,139 @@
+import { AuditLogEvent } from "discord.js";
+import botConfig from "../config/botConfig.js"; // adjust path if needed
 
+const userActions = new Map();
+
+function trackAction(userId, type) {
+  const now = Date.now();
+
+  if (!userActions.has(userId)) {
+    userActions.set(userId, []);
+  }
+
+  const actions = userActions.get(userId);
+
+  // remove old actions outside time window
+  const filtered = actions.filter(a => now - a.time < botConfig.antinuke.timeWindow);
+
+  filtered.push({ type, time: now });
+  userActions.set(userId, filtered);
+
+  return filtered;
+}
+
+async function punish(member, reason, guild) {
+  const config = botConfig.antinuke;
+
+  try {
+    if (!member || !member.manageable) return;
+
+    if (config.punishment === "ban") {
+      await member.ban({ reason });
+    } else if (config.punishment === "kick") {
+      await member.kick(reason);
+    } else if (config.punishment === "remove_roles") {
+      await member.roles.set([], reason);
+    }
+
+    if (config.logChannel) {
+      const log = guild.channels.cache.get(config.logChannel);
+      if (log) {
+        log.send(`🚨 Anti-Nuke triggered on **${member.user.tag}**\nReason: ${reason}`);
+      }
+    }
+  } catch (err) {
+    console.error("AntiNuke punish error:", err);
+  }
+}
+
+export default async (client) => {
+  const config = botConfig.antinuke;
+
+  if (!config?.enabled) return;
+
+  console.log("🛡️ Anti-Nuke system loaded");
+
+  // =========================
+  // CHANNEL DELETE
+  // =========================
+  client.on("channelDelete", async (channel) => {
+    const logs = await channel.guild.fetchAuditLogs({ type: AuditLogEvent.ChannelDelete });
+    const entry = logs.entries.first();
+    if (!entry) return;
+
+    const user = entry.executor;
+    if (!user || user.bot) return;
+
+    const member = await channel.guild.members.fetch(user.id).catch(() => null);
+    if (!member) return;
+
+    const actions = trackAction(user.id, "channelDelete");
+
+    if (actions.length >= config.maxChannelDeletes) {
+      await punish(member, "Mass channel deletion detected", channel.guild);
+    }
+  });
+
+  // =========================
+  // ROLE DELETE
+  // =========================
+  client.on("roleDelete", async (role) => {
+    const logs = await role.guild.fetchAuditLogs({ type: AuditLogEvent.RoleDelete });
+    const entry = logs.entries.first();
+    if (!entry) return;
+
+    const user = entry.executor;
+    if (!user || user.bot) return;
+
+    const member = await role.guild.members.fetch(user.id).catch(() => null);
+    if (!member) return;
+
+    const actions = trackAction(user.id, "roleDelete");
+
+    if (actions.length >= config.maxRoleDeletes) {
+      await punish(member, "Mass role deletion detected", role.guild);
+    }
+  });
+
+  // =========================
+  // MEMBER BAN
+  // =========================
+  client.on("guildBanAdd", async (ban) => {
+    const logs = await ban.guild.fetchAuditLogs({ type: AuditLogEvent.MemberBanAdd });
+    const entry = logs.entries.first();
+    if (!entry) return;
+
+    const user = entry.executor;
+    if (!user || user.bot) return;
+
+    const member = await ban.guild.members.fetch(user.id).catch(() => null);
+    if (!member) return;
+
+    const actions = trackAction(user.id, "ban");
+
+    if (actions.length >= config.maxMemberBans) {
+      await punish(member, "Mass banning detected", ban.guild);
+    }
+  });
+
+  // =========================
+  // ROLE CREATE
+  // =========================
+  client.on("roleCreate", async (role) => {
+    const logs = await role.guild.fetchAuditLogs({ type: AuditLogEvent.RoleCreate });
+    const entry = logs.entries.first();
+    if (!entry) return;
+
+    const user = entry.executor;
+    if (!user || user.bot) return;
+
+    const member = await role.guild.members.fetch(user.id).catch(() => null);
+    if (!member) return;
+
+    const actions = trackAction(user.id, "roleCreate");
+
+    if (actions.length >= config.maxRoleCreates) {
+      await punish(member, "Mass role creation detected", role.guild);
+    }
+  });
+};
